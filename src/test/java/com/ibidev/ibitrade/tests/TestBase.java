@@ -1,10 +1,6 @@
 package com.ibidev.ibitrade.tests;
-
 import io.appium.java_client.AppiumBy;
-import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.android.AndroidDriver;
-import io.appium.java_client.android.nativekey.AndroidKey;
-import io.appium.java_client.android.nativekey.KeyEvent;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -13,7 +9,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.PointerInput;
 import org.openqa.selenium.interactions.Sequence;
 import org.openqa.selenium.remote.DesiredCapabilities;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -25,18 +20,27 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class TestBase {
 
  protected AndroidDriver driver;
+ private final String username = "ibi116830";
+ private final String password = "Eliran3002";
 
  @Before
- public void setUp() throws MalformedURLException {
+ public void setUp() throws MalformedURLException, InterruptedException {
   DesiredCapabilities cap = getCap();
-
   URL url = new URL("http://127.0.0.1:4723/");
   driver = new AndroidDriver(url, cap);
-  System.out.println("Application started");
+
+  findEl("new UiSelector().text(\"Skip\")").click();
+  findEl("new UiSelector().className(\"android.widget.Button\").instance(1)").click();
+  findEl("new UiSelector().className(\"android.widget.Button\").instance(0)").click();
+  findEl("new UiSelector().resourceId(\"com.ibidev.ibitrade:id/emailEditTextView\")").sendKeys(username);
+  findEl("new UiSelector().resourceId(\"com.ibidev.ibitrade:id/passwordEditTextView\")").sendKeys(password);
+  findEl("new UiSelector().className(\"android.widget.Button\").instance(0)").click();
+  Thread.sleep(10000);
  }
 
  @After
@@ -45,6 +49,7 @@ public class TestBase {
    driver.quit();
   }
  }
+
 
  @NotNull
  private DesiredCapabilities getCap() {
@@ -61,6 +66,10 @@ public class TestBase {
 
  protected WebElement findEl(String element) {
   return driver.findElement(new AppiumBy.ByAndroidUIAutomator(element));
+ }
+
+ protected List<WebElement> findList(String element) {
+  return driver.findElements(new AppiumBy.ByAndroidUIAutomator(element));
  }
 
  protected void tap(int x, int y) {
@@ -92,4 +101,16 @@ public class TestBase {
    driver.navigate().back();
   }
  }
-}
+
+ protected boolean isExist(String element) {
+   boolean check;
+   try{
+    check = findEl(element).isDisplayed();
+   }
+   catch(Exception e){
+    check = false;
+   }
+   return check;
+  }
+ }
+
