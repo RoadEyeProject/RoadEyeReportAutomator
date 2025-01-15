@@ -21,7 +21,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
+//documentation for driver: https://javadoc.io/doc/io.appium/java-client/7.2.0/io/appium/java_client/android/AndroidDriver.html
 public class TestBase {
 
  protected AndroidDriver driver;
@@ -34,13 +34,7 @@ public class TestBase {
   URL url = new URL("http://127.0.0.1:4723/");
   driver = new AndroidDriver(url, cap);
 
-  findEl("new UiSelector().text(\"Skip\")").click();
-  findEl("new UiSelector().className(\"android.widget.Button\").instance(1)").click();
-  findEl("new UiSelector().className(\"android.widget.Button\").instance(0)").click();
-  findEl("new UiSelector().resourceId(\"com.ibidev.ibitrade:id/emailEditTextView\")").sendKeys(username);
-  findEl("new UiSelector().resourceId(\"com.ibidev.ibitrade:id/passwordEditTextView\")").sendKeys(password);
-  findEl("new UiSelector().className(\"android.widget.Button\").instance(0)").click();
-  Thread.sleep(10000);
+  logIn();
  }
 
  @After
@@ -70,6 +64,16 @@ public class TestBase {
 
  protected List<WebElement> findList(String element) {
   return driver.findElements(new AppiumBy.ByAndroidUIAutomator(element));
+ }
+
+ private void logIn() throws InterruptedException {
+  findEl("new UiSelector().text(\"Skip\")").click();
+  findEl("new UiSelector().className(\"android.widget.Button\").instance(1)").click();
+  findEl("new UiSelector().className(\"android.widget.Button\").instance(0)").click();
+  findEl("new UiSelector().resourceId(\"com.ibidev.ibitrade:id/emailEditTextView\")").sendKeys(username);
+  findEl("new UiSelector().resourceId(\"com.ibidev.ibitrade:id/passwordEditTextView\")").sendKeys(password);
+  findEl("new UiSelector().className(\"android.widget.Button\").instance(0)").click();
+  Thread.sleep(10000);
  }
 
  protected void tap(int x, int y) {

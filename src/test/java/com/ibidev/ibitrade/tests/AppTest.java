@@ -4,9 +4,10 @@ import java.net.MalformedURLException;
 
 public class AppTest extends TestBase {
 
-        @Test
-        public void emptyTest() {
-
+    @Test
+    public void emptyTest() {
+        String toPrint = findEl("new UiSelector().text(\"My Portfolio\")").getLocation().toString();
+        boolean toPrint1 = findEl("new UiSelector().text(\"My Portfolio\")").isDisplayed();
     }
 
     @Test
