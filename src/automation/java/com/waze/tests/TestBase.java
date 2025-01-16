@@ -48,6 +48,7 @@ public class TestBase {
         cap.setCapability("automationName", "uiAutomator2");
         cap.setCapability("appPackage", "com.waze");
         cap.setCapability("appActivity", "com.waze.FreeMapAppActivity");
+        cap.setCapability("autoGrantPermissions", true); //give all permissions to waze(for location)
         return cap;
     }
 }
