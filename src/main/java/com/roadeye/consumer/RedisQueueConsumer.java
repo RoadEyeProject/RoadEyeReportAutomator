@@ -1,7 +1,11 @@
 package com.roadeye.consumer;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.AppiumDriver;
+
+import org.json.JSONObject;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import redis.clients.jedis.Jedis;
@@ -40,19 +44,30 @@ public class RedisQueueConsumer {
     }
 
     private void processMessage(String message) {
-        if (message.contains("\"eventType\":\"bad weather\"")) {
-            System.out.println("Triggering 'Bad Weather' automation...");
-            triggerBadWeatherAutomation();
-        } else {
-            System.out.println("Unknown event type. Skipping message.");
+        try {
+            JSONObject event = new JSONObject(message);
+            if (event.getString("eventType").equals("bad weather")) {
+                System.out.println("Triggering 'Bad Weather' automation...");
+
+                // Extract coordinates
+                JSONObject location = event.getJSONObject("location");
+                double latitude = location.getDouble("latitude");
+                double longitude = location.getDouble("longitude");
+
+                triggerBadWeatherAutomation(latitude, longitude);
+            } else {
+                System.out.println("Unknown event type. Skipping message.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error processing message: " + e.getMessage());
         }
     }
 
-    private void triggerBadWeatherAutomation() {
+    private void triggerBadWeatherAutomation(double latitude, double longitude) {
+        setupDriver(latitude, longitude);
         WebDriverWait wait = null;
         try {
-            setupDriver();
-            wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            wait = new WebDriverWait(driver, Duration.ofSeconds(40));
 
             // Perform Waze automation steps with waits
             WebElement getStartedButton = wait.until(
@@ -93,8 +108,10 @@ public class RedisQueueConsumer {
     }
 
 
-    private void setupDriver() {
+    private void setupDriver(double latitude, double longitude) {
         System.out.println("Setting up Appium driver...");
+
+        grantMockLocationPermission(latitude, longitude);
         try {
             DesiredCapabilities capabilities = new DesiredCapabilities();
             capabilities.setCapability("deviceName", "pixel_9_emulator");
@@ -105,10 +122,14 @@ public class RedisQueueConsumer {
             capabilities.setCapability("appPackage", "com.waze");
             capabilities.setCapability("appActivity", "com.waze.FreeMapAppActivity");
             capabilities.setCapability("autoGrantPermissions", true);
+            capabilities.setCapability("locationServicesEnabled", true);
+            capabilities.setCapability("locationServicesAuthorized", true);
 
             driver = new AppiumDriver(new URL("http://127.0.0.1:4723/"), capabilities);
-            System.out.println("Appium driver setup complete.");
+
+
         } catch (Exception e) {
+            System.exit(1); //temp! kills the program so the loop will end
             throw new RuntimeException("Failed to initialize Appium driver", e);
         }
     }
@@ -120,4 +141,36 @@ public class RedisQueueConsumer {
             System.out.println("Appium driver quit successfully.");
         }
     }
+
+    private void grantMockLocationPermission(double latitude, double longitude) {
+        try {
+            // Set the GPS location using adb emu geo fix
+            String locationCommand = String.format("adb emu geo fix %f %f", longitude, latitude);
+            executeCommand(locationCommand);
+            System.out.println("Set GPS location to: Latitude = " + latitude + ", Longitude = " + longitude);
+        } catch (Exception e) {
+            System.err.println("Failed to grant permissions or set location: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void executeCommand(String command) throws Exception {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command(command.split(" "));
+        processBuilder.redirectErrorStream(true);
+
+        Process process = processBuilder.start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line); // Log command output
+            }
+        }
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new RuntimeException("Command failed with exit code: " + exitCode);
+        }
+    }
+
 }
