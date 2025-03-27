@@ -46,66 +46,80 @@ public class RedisQueueConsumer {
     private void processMessage(String message) {
         try {
             JSONObject event = new JSONObject(message);
-            if (event.getString("eventType").equals("bad weather")) {
-                System.out.println("Triggering 'Bad Weather' automation...");
+            String eventType = event.getString("eventType");
+            System.out.println("Triggering '" + eventType + "' automation...");
 
-                // Extract coordinates
-                JSONObject location = event.getJSONObject("location");
-                double latitude = location.getDouble("latitude");
-                double longitude = location.getDouble("longitude");
+            JSONObject location = event.getJSONObject("location");
+            double latitude = location.getDouble("latitude");
+            double longitude = location.getDouble("longitude");
 
-                triggerBadWeatherAutomation(latitude, longitude);
-            } else {
-                System.out.println("Unknown event type. Skipping message.");
-            }
+            triggerAutomation(eventType, latitude, longitude);
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
         }
     }
 
-    private void triggerBadWeatherAutomation(double latitude, double longitude) {
-        setupDriver(latitude, longitude);
-        WebDriverWait wait = null;
-        try {
-            wait = new WebDriverWait(driver, Duration.ofSeconds(40));
 
-            // Perform Waze automation steps with waits
+    private void triggerAutomation(String eventType, double latitude, double longitude) {
+        setupDriver(latitude, longitude);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));
+        try {
+            // Common initial steps for both event types
             WebElement getStartedButton = wait.until(
                     ExpectedConditions.presenceOfElementLocated(AppiumBy.id("com.waze:id/authWelcomeTopButtonText")));
             getStartedButton.click();
-            System.out.println("Clicked on 'Get started' button.");
 
             WebElement continueAsGuestButton = wait.until(
                     ExpectedConditions.presenceOfElementLocated(AppiumBy.xpath(
                             "//android.widget.TextView[@resource-id='com.waze:id/dialog_item_text' and @text='Continue as guest']")));
             continueAsGuestButton.click();
-            System.out.println("Clicked on 'Continue as guest' button.");
 
             WebElement noElectricPopup = wait.until(
                     ExpectedConditions.presenceOfElementLocated(AppiumBy.id("com.waze:id/button2")));
             noElectricPopup.click();
-            System.out.println("Closed electric vehicle pop-up.");
 
             WebElement reportButton = wait.until(
                     ExpectedConditions.presenceOfElementLocated(AppiumBy.id("com.waze:id/mainReportButton")));
             reportButton.click();
-            System.out.println("Clicked on yellow report button.");
 
-            WebElement badWeatherButton = wait.until(
-                    ExpectedConditions.presenceOfElementLocated(AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
-            badWeatherButton.click();
-            System.out.println("Clicked on bad weather button.");
+            // Event-specific logic
+            switch (eventType) {
+                case "bad weather":
+                    WebElement badWeatherButton = wait.until(
+                            ExpectedConditions.presenceOfElementLocated(AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
+                    badWeatherButton.click();
+                    System.out.println("Clicked on 'Bad Weather' button.");
+                    break;
+
+                case "police":
+                    WebElement policeButton = wait.until(
+                            ExpectedConditions.presenceOfElementLocated(AppiumBy.androidUIAutomator("new UiSelector().text(\"Police\")")));
+                    policeButton.click();
+                    System.out.println("Clicked on 'Police' button.");
+
+                    WebElement policeOnMySideButton = wait.until(
+                            ExpectedConditions.presenceOfElementLocated(AppiumBy.androidUIAutomator("new UiSelector().text(\"Police\")")));
+                    policeOnMySideButton.click();
+                    System.out.println("Confirmed 'Police on my side'.");
+                    break;
+
+                default:
+                    System.out.println("Unknown event type provided: " + eventType);
+                    return;  // Exit the method if unknown event type
+            }
 
             WebElement submitButton = wait.until(
                     ExpectedConditions.presenceOfElementLocated(AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_PRIMARY_BUTTON")));
             submitButton.click();
-            System.out.println("Clicked on report button.");
+            System.out.println("Report submitted successfully.");
+
         } catch (Exception e) {
-            System.err.println("Error during 'Bad Weather' automation: " + e.getMessage());
+            System.err.println("Error during automation for event type '" + eventType + "': " + e.getMessage());
         } finally {
             teardownDriver();
         }
     }
+
 
 
     private void setupDriver(double latitude, double longitude) {
