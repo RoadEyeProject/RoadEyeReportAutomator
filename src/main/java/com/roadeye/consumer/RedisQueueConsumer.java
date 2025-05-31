@@ -131,7 +131,7 @@ public class RedisQueueConsumer {
             capabilities.setCapability("deviceName", "pixel_9_emulator");
             capabilities.setCapability("udid", "emulator-5554");
             capabilities.setCapability("platformName", "Android");
-            capabilities.setCapability("platformVersion", "15");
+            capabilities.setCapability("platformVersion", "16");
             capabilities.setCapability("automationName", "UiAutomator2");
             capabilities.setCapability("appPackage", "com.waze");
             capabilities.setCapability("appActivity", "com.waze.FreeMapAppActivity");
