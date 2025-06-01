@@ -1,6 +1,4 @@
-package com.roadeye.main;
-import com.roadeye.consumer.RedisQueueConsumer;
-
+package com.roadeye;
 
 public class Main {
     public static void main(String[] args) {

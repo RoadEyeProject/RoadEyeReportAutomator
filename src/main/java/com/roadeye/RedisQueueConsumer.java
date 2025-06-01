@@ -1,4 +1,4 @@
-package com.roadeye.consumer;
+package com.roadeye;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.Duration;
