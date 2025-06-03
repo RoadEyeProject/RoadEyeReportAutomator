@@ -90,14 +90,21 @@ public class RedisQueueConsumer {
                     WebElement badWeatherButton = wait.until(
                             ExpectedConditions.presenceOfElementLocated(AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
                     badWeatherButton.click();
-                    System.out.println("Clicked on 'Bad Weather' button.");
+                    System.out.println("Clicked on 'Road Construction' button.");
+                    break;
+
+                case "Accident":
+                    WebElement accidentButton = wait.until(
+                            ExpectedConditions.presenceOfElementLocated(AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
+                    accidentButton.click();
+                    System.out.println("Clicked on 'Accident' button.");
                     break;
 
                 case "Police Car":
                     WebElement policeButton = wait.until(
                             ExpectedConditions.presenceOfElementLocated(AppiumBy.androidUIAutomator("new UiSelector().text(\"Police\")")));
                     policeButton.click();
-                    System.out.println("Clicked on 'Police' button.");
+                    System.out.println("Clicked on 'Police Car' button.");
 
                     WebElement policeOnMySideButton = wait.until(
                             ExpectedConditions.presenceOfElementLocated(AppiumBy.androidUIAutomator("new UiSelector().text(\"Police\")")));
