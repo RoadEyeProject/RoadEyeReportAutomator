@@ -28,10 +28,12 @@ public class RedisQueueConsumer {
 
     public void start() {
         try (Jedis jedis = new Jedis(redisHost, redisPort)) {
-            System.out.println("Connected to Redis. Listening for messages...");
+            jedis.select(0); 
+            System.out.println("✅ Connected to Redis. PING: " + jedis.ping());
 
             while (true) {
                 // BLPOP blocks until a message is available
+                System.out.println("🕐 Waiting for events...");
                 String message = jedis.blpop(0, queueName).get(1);
                 System.out.println("Received message: " + message);
 
@@ -39,7 +41,7 @@ public class RedisQueueConsumer {
                 processMessage(message);
             }
         } catch (Exception e) {
-            System.err.println("Error while listening to Redis queue: " + e.getMessage());
+            System.err.println("❌ Could not connect to Redis: " + e.getMessage());
         }
     }
 
@@ -84,14 +86,14 @@ public class RedisQueueConsumer {
 
             // Event-specific logic
             switch (eventType) {
-                case "bad weather":
+                case "Road Construction":
                     WebElement badWeatherButton = wait.until(
                             ExpectedConditions.presenceOfElementLocated(AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
                     badWeatherButton.click();
                     System.out.println("Clicked on 'Bad Weather' button.");
                     break;
 
-                case "police":
+                case "Police Car":
                     WebElement policeButton = wait.until(
                             ExpectedConditions.presenceOfElementLocated(AppiumBy.androidUIAutomator("new UiSelector().text(\"Police\")")));
                     policeButton.click();
@@ -128,10 +130,10 @@ public class RedisQueueConsumer {
         grantMockLocationPermission(latitude, longitude);
         try {
             DesiredCapabilities capabilities = new DesiredCapabilities();
-            capabilities.setCapability("deviceName", "pixel_9_emulator");
+            capabilities.setCapability("deviceName", "pixel_7_emulator");
             capabilities.setCapability("udid", "emulator-5554");
             capabilities.setCapability("platformName", "Android");
-            capabilities.setCapability("platformVersion", "16");
+            capabilities.setCapability("platformVersion", "14");
             capabilities.setCapability("automationName", "UiAutomator2");
             capabilities.setCapability("appPackage", "com.waze");
             capabilities.setCapability("appActivity", "com.waze.FreeMapAppActivity");
