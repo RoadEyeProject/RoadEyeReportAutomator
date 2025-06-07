@@ -1,7 +1,10 @@
 package com.roadeye;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.Duration;
+import java.util.Map;
+
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.AppiumDriver;
 
@@ -28,7 +31,7 @@ public class RedisQueueConsumer {
 
     public void start() {
         try (Jedis jedis = new Jedis(redisHost, redisPort)) {
-            jedis.select(0); 
+            jedis.select(0);
             System.out.println("✅ Connected to Redis. PING: " + jedis.ping());
 
             while (true) {
@@ -61,7 +64,6 @@ public class RedisQueueConsumer {
         }
     }
 
-
     private void triggerAutomation(String eventType, double latitude, double longitude) {
         setupDriver(latitude, longitude);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));
@@ -76,9 +78,9 @@ public class RedisQueueConsumer {
                             "//android.widget.TextView[@resource-id='com.waze:id/dialog_item_text' and @text='Continue as guest']")));
             continueAsGuestButton.click();
 
-            WebElement noElectricPopup = wait.until(
-                    ExpectedConditions.presenceOfElementLocated(AppiumBy.id("com.waze:id/button2")));
-            noElectricPopup.click();
+            // WebElement noElectricPopup = wait.until(
+            //         ExpectedConditions.presenceOfElementLocated(AppiumBy.id("com.waze:id/button2")));
+            // noElectricPopup.click();
 
             WebElement reportButton = wait.until(
                     ExpectedConditions.presenceOfElementLocated(AppiumBy.id("com.waze:id/mainReportButton")));
@@ -88,38 +90,43 @@ public class RedisQueueConsumer {
             switch (eventType) {
                 case "Road Construction":
                     WebElement badWeatherButton = wait.until(
-                            ExpectedConditions.presenceOfElementLocated(AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
+                            ExpectedConditions.presenceOfElementLocated(
+                                    AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
                     badWeatherButton.click();
                     System.out.println("Clicked on 'Road Construction' button.");
                     break;
 
                 case "Accident":
                     WebElement accidentButton = wait.until(
-                            ExpectedConditions.presenceOfElementLocated(AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
+                            ExpectedConditions.presenceOfElementLocated(
+                                    AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
                     accidentButton.click();
                     System.out.println("Clicked on 'Accident' button.");
                     break;
 
                 case "Police Car":
                     WebElement policeButton = wait.until(
-                            ExpectedConditions.presenceOfElementLocated(AppiumBy.androidUIAutomator("new UiSelector().text(\"Police\")")));
+                            ExpectedConditions.presenceOfElementLocated(
+                                    AppiumBy.androidUIAutomator("new UiSelector().text(\"Police\")")));
                     policeButton.click();
                     System.out.println("Clicked on 'Police Car' button.");
 
                     WebElement policeOnMySideButton = wait.until(
-                            ExpectedConditions.presenceOfElementLocated(AppiumBy.androidUIAutomator("new UiSelector().text(\"Police\")")));
+                            ExpectedConditions.presenceOfElementLocated(
+                                    AppiumBy.androidUIAutomator("new UiSelector().text(\"Police\")")));
                     policeOnMySideButton.click();
                     System.out.println("Confirmed 'Police on my side'.");
                     break;
 
                 default:
                     System.out.println("Unknown event type provided: " + eventType);
-                    return;  // Exit the method if unknown event type
+                    return; // Exit the method if unknown event type
             }
 
-            WebElement submitButton = wait.until(
-                    ExpectedConditions.presenceOfElementLocated(AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_PRIMARY_BUTTON")));
-            submitButton.click();
+            // WebElement submitButton = wait.until(
+            //         ExpectedConditions.presenceOfElementLocated(
+            //                 AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_PRIMARY_BUTTON")));
+            // submitButton.click();
             System.out.println("Report submitted successfully.");
 
         } catch (Exception e) {
@@ -129,30 +136,31 @@ public class RedisQueueConsumer {
         }
     }
 
-
-
     private void setupDriver(double latitude, double longitude) {
         System.out.println("Setting up Appium driver...");
-
         grantMockLocationPermission(latitude, longitude);
         try {
             DesiredCapabilities capabilities = new DesiredCapabilities();
-            capabilities.setCapability("deviceName", "pixel_7_emulator");
-            capabilities.setCapability("udid", "emulator-5554");
+            capabilities.setCapability("deviceName", "galaxy");
+            capabilities.setCapability("udid", "RF8M21KVM1K");
             capabilities.setCapability("platformName", "Android");
-            capabilities.setCapability("platformVersion", "14");
+            capabilities.setCapability("platformVersion", "12");
             capabilities.setCapability("automationName", "UiAutomator2");
             capabilities.setCapability("appPackage", "com.waze");
             capabilities.setCapability("appActivity", "com.waze.FreeMapAppActivity");
             capabilities.setCapability("autoGrantPermissions", true);
             capabilities.setCapability("locationServicesEnabled", true);
             capabilities.setCapability("locationServicesAuthorized", true);
+            // capabilities.setCapability("autoLaunch", false); // Prevent auto launching
+            // Waze
 
             driver = new AppiumDriver(new URL("http://127.0.0.1:4723/"), capabilities);
 
-
         } catch (Exception e) {
-            System.exit(1); //temp! kills the program so the loop will end
+            System.out.println("Error::::::::::\n");
+            System.out.println(e);
+            System.out.println("Error::::::::::\n");
+            System.exit(1); // temp! kills the program so the loop will end
             throw new RuntimeException("Failed to initialize Appium driver", e);
         }
     }
@@ -167,13 +175,20 @@ public class RedisQueueConsumer {
 
     private void grantMockLocationPermission(double latitude, double longitude) {
         try {
-            // Set the GPS location using adb emu geo fix
-            String locationCommand = String.format("adb emu geo fix %f %f", longitude, latitude);
-            executeCommand(locationCommand);
-            System.out.println("Set GPS location to: Latitude = " + latitude + ", Longitude = " + longitude);
+            String latStr = String.format("%.4f", latitude);
+            String lonStr = String.format("%.4f", longitude);
+
+            // Build adb command to launch GPS Joystick with the desired coordinates
+            String startIntent = String.format(
+                    "adb shell am start-foreground-service -a " + 
+                    "theappninjas.gpsjoystick.TELEPORT --ef lat \"%s\" --ef lng \"%s\" --ef alt 0",
+                    latStr, lonStr);
+            executeCommand(startIntent);
+            System.out.println("✅ Location spoofing initiated: " + latStr + ", " + lonStr);
+
         } catch (Exception e) {
-            System.err.println("Failed to grant permissions or set location: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("❌ Failed to set location: " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
