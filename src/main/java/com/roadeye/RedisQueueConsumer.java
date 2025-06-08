@@ -142,9 +142,9 @@ public class RedisQueueConsumer {
         try {
             DesiredCapabilities capabilities = new DesiredCapabilities();
             capabilities.setCapability("deviceName", "galaxy");
-            capabilities.setCapability("udid", "RF8M21KVM1K");
+            capabilities.setCapability("udid", "R58N522VJEW");
             capabilities.setCapability("platformName", "Android");
-            capabilities.setCapability("platformVersion", "12");
+            capabilities.setCapability("platformVersion", "13");
             capabilities.setCapability("automationName", "UiAutomator2");
             capabilities.setCapability("appPackage", "com.waze");
             capabilities.setCapability("appActivity", "com.waze.FreeMapAppActivity");
