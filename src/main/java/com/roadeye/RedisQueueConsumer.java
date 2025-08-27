@@ -3,8 +3,6 @@ package com.roadeye;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.Duration;
-import java.util.Map;
-
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.AppiumDriver;
 
@@ -83,25 +81,35 @@ public class RedisQueueConsumer {
             // noElectricPopup.click();
 
             WebElement reportButton = wait.until(
-                    ExpectedConditions.presenceOfElementLocated(AppiumBy.id("com.waze:id/mainReportButton")));
+                    ExpectedConditions.presenceOfElementLocated(AppiumBy.id("com.waze:id/mapReportButtonView")));
             reportButton.click();
 
             // Event-specific logic
             switch (eventType) {
                 case "Road Construction":
-                    WebElement badWeatherButton = wait.until(
+                    WebElement hazardButton = wait.until(
                             ExpectedConditions.presenceOfElementLocated(
-                                    AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
-                    badWeatherButton.click();
-                    System.out.println("Clicked on 'Road Construction' button.");
+                                    AppiumBy.androidUIAutomator("new UiSelector().text(\"Hazard\")")));
+                    hazardButton.click();
+
+                    WebElement constructionButton = wait.until(
+                            ExpectedConditions.presenceOfElementLocated(
+                                    AppiumBy.androidUIAutomator("new UiSelector().text(\"Construction\")")));
+                    constructionButton.click();
+                    System.out.println("Clicked on 'Hazard -> Construction' button.");
                     break;
 
                 case "Accident":
-                    WebElement accidentButton = wait.until(
+                    WebElement crashButton = wait.until(
                             ExpectedConditions.presenceOfElementLocated(
-                                    AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_INDEXED_ITEM7")));
-                    accidentButton.click();
-                    System.out.println("Clicked on 'Accident' button.");
+                                    AppiumBy.androidUIAutomator("new UiSelector().text(\"Crash\")")));
+                    crashButton.click();
+
+                    WebElement crashOnMySideButton = wait.until(
+                            ExpectedConditions.presenceOfElementLocated(
+                                    AppiumBy.androidUIAutomator("new UiSelector().text(\"Crash\")")));
+                    crashOnMySideButton.click();
+                    System.out.println("Clicked on 'Crash(Accident) -> Crash' button.");
                     break;
 
                 case "Police Car":
@@ -122,11 +130,17 @@ public class RedisQueueConsumer {
                     System.out.println("Unknown event type provided: " + eventType);
                     return; // Exit the method if unknown event type
             }
+            
+            WebElement confirmReportButton = wait.until(
+                    ExpectedConditions.presenceOfElementLocated(
+                            AppiumBy.androidUIAutomator("new UiSelector().text(\"Report\")")));
+            confirmReportButton.click();
+            System.out.println("Sent report.");
 
-            // WebElement submitButton = wait.until(
-            //         ExpectedConditions.presenceOfElementLocated(
-            //                 AppiumBy.accessibilityId("REPORT_MENU_BOTTOM_SHEET_PRIMARY_BUTTON")));
-            // submitButton.click();
+            //This is to locate if the report confirmation text is present
+            WebElement alerterTitle = wait.until(
+                    ExpectedConditions.presenceOfElementLocated(
+                            AppiumBy.id("com.waze:id/alerterTitle")));
             System.out.println("Report submitted successfully.");
 
         } catch (Exception e) {
